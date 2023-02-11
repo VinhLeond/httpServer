@@ -1,3 +1,4 @@
+#pragma once
 #include <openrave/openrave.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
@@ -28,7 +29,8 @@ public:
     bool start();
 
 private:
-    TcpConnection(asio::io_context& ioContext) : m_socket(ioContext)
+    TcpConnection(asio::io_context& ioContext) 
+    :   m_socket(ioContext)
     {
         clearOutBuff();
         clearInBuff();
@@ -44,7 +46,6 @@ private:
     asio::ip::tcp::socket m_socket;
     char m_inBuff[SERVER_RECV_BUFF_LEN];
     char m_outBuff[SERVER_RECV_BUFF_LEN];
-    std::string m_message;
 };
 
 class HttpServer

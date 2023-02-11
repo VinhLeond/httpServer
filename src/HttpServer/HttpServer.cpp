@@ -1,4 +1,5 @@
 #include "HttpServer/HttpServer.hpp"
+#include "sys/sys.hpp"
 
 constexpr int MAX_CONNECTION = 10;
 
@@ -147,7 +148,11 @@ void HttpServer::acceptHandler(const boost::system::error_code& err, TcpConnecti
     if(!err){
         std::cout<<"Successfully receive connection"<<std::endl;
         // Expand this to multi thread for supporting multi connection
-        connectionPtr->start();
+        asio::post(sys::getThreadPool(), 
+            [connectionPtr]()
+            {
+                connectionPtr->start();
+            });
         listen();
     }
     else{

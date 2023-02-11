@@ -1,12 +1,13 @@
 #include <iostream>
 #include <openrave/openrave.h>
 #include <HttpServer/HttpServer.hpp>
+#include "sys/sys.hpp"
 
 int main(int argc, char const *argv[])
 {
-    boost::asio::io_context ioContext;
-    HttpServer server(ioContext, 9000);
+    sys::setup();
+    HttpServer server(sys::getIoContext(), 9000);
     server.start();
-    ioContext.run();
+    sys::run();
     return 0;
 }

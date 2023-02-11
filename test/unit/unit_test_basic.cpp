@@ -3,7 +3,7 @@
 #include "catch2/catch_all.hpp"
 
 
-TEST_CASE(" 1) Server initialization")
+TEST_CASE(" 1) Server initialization without error")
 {
     sys::setup();
     HttpServer server(sys::getIoContext(), 9000);

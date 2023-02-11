@@ -30,8 +30,8 @@ public:
 private:
     TcpConnection(asio::io_context& ioContext) : m_socket(ioContext)
     {
-        memset(m_inBuff, 0, sizeof(m_inBuff));
-        memset(m_outBuff, 0, sizeof(m_outBuff));
+        clearOutBuff();
+        clearInBuff();
     }
     void writeHandler(const boost::system::error_code& err, size_t byteLen);
     void receiveHandler(const boost::system::error_code& err, size_t byteLen);
@@ -40,6 +40,7 @@ private:
     bool clearInBuff();
     bool doWrite(std::string&& msg);
     bool doRead();
+    bool stop();
     asio::ip::tcp::socket m_socket;
     char m_inBuff[SERVER_RECV_BUFF_LEN];
     char m_outBuff[SERVER_RECV_BUFF_LEN];
@@ -57,7 +58,7 @@ class HttpServer
     private:
     asio::io_context& m_ioContext;
     asio::ip::tcp::acceptor m_acceptor;
-    bool startAccept();
-    void acceptHandler(const boost::system::error_code& err, TcpConnection::TcpConnectionPtr connectionPtr, std::string&& msg);
+    bool listen();
+    void acceptHandler(const boost::system::error_code& err, TcpConnection::TcpConnectionPtr connectionPtr);
     void writeHandler(const boost::system::error_code& err, TcpConnection::TcpConnectionPtr connectionPtr);
 };

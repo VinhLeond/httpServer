@@ -2,44 +2,120 @@
 
 constexpr int MAX_CONNECTION = 10;
 
-/*
+/********************************************************************************
 *        
 *           TCP_CONNECTION
 *
-*/
-void TcpConnection::writeHandler(const boost::system::error_code& err, size_t writeLen){
-	if( !err )
-		std::cout << "Connection_fFinished_sending_message\n"<<std::endl;
-    else 
-		std::cerr << "Connection_failed_to_send_message:_" << err.message( )<<std::endl;
+********************************************************************************/
 
-    // asio::post(m_socket->get_executor(), 
-    // [this, bufferSize{writeLen}] ()
-    // {
-
-    // });
-}
-
-bool TcpConnection::process(std::string&& msg){
-    // asio::async_write(*m_socket, asio::buffer(std::move(msg)),
-    // [this](const boost::system::error_code& err, size_t byteLen)
-    // {
-    //     return this->writeHandler(err, byteLen);
-    // });
-    // Read Message
-
-
+bool TcpConnection::start(){
+    doWrite("Connected\n");
+    doRead();
     // Send Response
     return true;
 }
 
-/*
+bool TcpConnection::doRead(){
+    m_socket.async_receive(asio::buffer(m_inBuff, sizeof(m_inBuff)), 
+    [connectionPtr = shared_from_this()](boost::system::error_code err, size_t byteLen)
+    {
+        connectionPtr->receiveHandler(err, byteLen);
+    });
+    return true;
+}
+
+void TcpConnection::receiveHandler(const boost::system::error_code& err, size_t byteLen)
+{
+    if(!err){
+        std::cout<<"Received_Data: "<<m_inBuff<<std::endl;
+        // Process package
+        clearInBuff();
+        doWrite("Acknowledge\n");
+    }
+    else{
+        std::cout<<"Failed_to_receive_message: "<<err.message()<<std::endl;
+    }
+}
+
+
+bool TcpConnection::doWrite(std::string&& msg){
+    prepOutMsg(std::move(msg));
+    asio::async_write(m_socket, asio::buffer(m_outBuff, SERVER_WRITE_BUFF_LEN), 
+    [connectionPtr = shared_from_this()](const boost::system::error_code& err, size_t byteLen)
+    {
+        connectionPtr->writeHandler(err, byteLen);
+    });
+    return true;
+}
+
+void TcpConnection::writeHandler(const boost::system::error_code& err, size_t writeLen){
+	if( !err ){
+        std::cout << "Sent_Data: " << m_outBuff << std::endl;
+        clearOutBuff();
+
+        m_socket.async_receive(asio::buffer(m_inBuff, SERVER_RECV_BUFF_LEN), 
+        [connectionPtr = shared_from_this()](const boost::system::error_code& err, size_t byteLen)
+        {
+            connectionPtr->receiveHandler(err, byteLen);
+        });
+    }
+    else 
+		std::cout << "Connection_failed_to_send_message:_" << err.message( )<<std::endl;
+}
+
+bool TcpConnection::prepOutMsg(std::string&& msg){
+    memset(m_inBuff, 0, sizeof(m_inBuff));
+    try
+    {
+        strcpy(m_outBuff, msg.c_str());
+    }
+    catch(const std::exception& e)
+    {
+        std::cerr << e.what() << '\n';
+        return false;
+    }
+    return true;
+}
+
+bool TcpConnection::clearOutBuff(){
+    try
+    {
+        memset(m_outBuff, 0, sizeof(m_outBuff));
+    }
+    catch(const std::exception& e)
+    {
+        std::cerr << e.what() << '\n';
+        return false;
+    }
+    return true;
+}
+
+bool TcpConnection::clearInBuff(){
+    try
+    {
+        memset(m_inBuff, 0, sizeof(m_inBuff));
+    }
+    catch(const std::exception& e)
+    {
+        std::cerr << e.what() << '\n';
+        return false;
+    }
+    return true;
+}
+
+
+
+
+
+
+/********************************************************************************
+*
 *        
 *           HttpServer
 *
-*/
-HttpServer::HttpServer(boost::asio::io_context& ioContext) 
-: m_acceptor(ioContext), m_ioContext(ioContext){
+********************************************************************************/
+HttpServer::HttpServer(boost::asio::io_context& ioContext, int portNum) 
+: m_acceptor(ioContext, asio::ip::tcp::endpoint(asio::ip::tcp::v4(), portNum)), m_ioContext(ioContext){
     
 }
 
@@ -47,37 +123,37 @@ HttpServer::~HttpServer(){
     
 }
 
-bool HttpServer::start(int portNum){
-    auto endPoint = asio::ip::tcp::endpoint(asio::ip::tcp::v4(), portNum);
-    m_acceptor.set_option( boost::asio::ip::tcp::acceptor::reuse_address( true ) );
-    m_acceptor.open(endPoint.protocol());
-    m_acceptor.bind( endPoint );
-    m_acceptor.listen();
+bool HttpServer::start(){
     startAccept();
     return true;
 }
 
-void HttpServer::writeHandler(const boost::system::error_code& err, TcpConnection::TcpConnectionPtr connection){
+void HttpServer::writeHandler(const boost::system::error_code& err, TcpConnection::TcpConnectionPtr connectionPtr){
 	if( !err ) 
 		std::cout << "Server_finished_sending_message\n"<<std::endl;
     else 
-		std::cerr << "Server_failed_to_send_message:_"<<err.message( )<<std::endl;
+		std::cout << "Server_failed_to_send_message:_"<<err.message( )<<std::endl;
 }
 
-void HttpServer::acceptHandler(const boost::system::error_code& err, TcpConnection::TcpConnectionPtr connection, std::string&& msg){
+void HttpServer::acceptHandler(const boost::system::error_code& err, TcpConnection::TcpConnectionPtr connectionPtr, std::string&& msg){
     if(!err){
-        asio::async_write(*connection->getSocket(), asio::buffer("Hellow_World!\n"), [this, connection](const boost::system::error_code& err, size_t byteLen){ this->writeHandler(err, connection); });
-        connection->process(std::move(msg));
+        std::cout<<"Successfully receive connection"<<std::endl;
+        // Expand this to multi thread for supporting multi connection
+        connectionPtr->start();
+        startAccept();
     }
-    startAccept();
+    else
+    {
+        connectionPtr.reset();
+    }
 }
 
 bool HttpServer::startAccept(){
-    TcpConnection::TcpConnectionPtr newCon = TcpConnection::create(m_ioContext);
-    std::string msg;
-    m_acceptor.async_accept(*newCon->getSocket(),
-                    [this, newCon, msg = std::move(msg)](const boost::system::error_code& err) mutable{
-                        return this->acceptHandler(err, newCon, std::move(msg));
+    TcpConnection::TcpConnectionPtr newConPtr = TcpConnection::create(m_ioContext);
+    m_acceptor.async_accept(newConPtr->getSocket(),
+                    [this, conPtr = newConPtr, msg = "Connected"](const boost::system::error_code& err) {
+                        std::cout<<"In_Lambda_"<<conPtr.use_count()<<std::endl;
+                        this->acceptHandler(err, conPtr, std::move(msg));
                     });
     return true;
 }

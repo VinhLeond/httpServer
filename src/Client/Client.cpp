@@ -66,10 +66,39 @@ void TcpClient::writeHandler(const boost::system::error_code& err, size_t byteLe
     return;
 }
 
+void TcpClient::connectHandler(const boost::system::error_code& err, asio::ip::tcp::resolver::iterator endPoitItr)
+{
+    if (!err)
+    {
+        std::cin >> m_outMsg;
+        std::cout << "Entered: " << m_outMsg << std::endl;
+        m_outMsg += "\0";
+
+        startWrite();
+    } 
+    else if (endPoitItr != asio::ip::tcp::resolver::iterator())
+    {
+        m_socketPtr->close();
+        asio::ip::tcp::endpoint endPoint = *endPoitItr;
+
+    m_socketPtr->async_connect(endPoint,
+    [this, endPoitItr = ++endPoitItr](const boost::system::error_code& err)
+    {
+        this->connectHandler(err, endPoitItr);
+    });
+    }
+}
+
 bool TcpClient::connect(std::string serverName, std::string serviceName){
     asio::ip::tcp::resolver resolver(m_ioContext);
-    asio::ip::tcp::resolver::results_type endPoint = resolver.resolve(serverName, serviceName);
-    asio::connect(*m_socketPtr, endPoint);
+    asio::ip::tcp::resolver::query Query(serverName, serviceName);
+    auto endPointIterator = resolver.resolve(serverName, serviceName);
+    auto endPoint = *endPointIterator;
+    m_socketPtr->async_connect(endPoint,
+    [this, endPointIterator = ++endPointIterator](const boost::system::error_code& err)
+    {
+        this->connectHandler(err, endPointIterator);
+    });
     return true;
 }
 

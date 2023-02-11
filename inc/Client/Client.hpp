@@ -21,5 +21,6 @@ class TcpClient
     void readHandler(const boost::system::error_code& err, size_t byteLen);
     bool startWrite();
     void writeHandler(const boost::system::error_code& err, size_t byteLen);
+    void connectHandler(const boost::system::error_code& err, asio::ip::tcp::resolver::iterator endPoitItr);
 
 };

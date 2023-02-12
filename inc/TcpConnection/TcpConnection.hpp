@@ -5,8 +5,8 @@
 #include <boost/asio.hpp>
 
 namespace asio = boost::asio;
-constexpr size_t SERVER_RECV_BUFF_LEN = 512;
-constexpr size_t SERVER_WRITE_BUFF_LEN = 512;
+constexpr size_t SERVER_RECV_BUFF_LEN = 8192;
+constexpr size_t SERVER_WRITE_BUFF_LEN = 8192;
 
 class TcpConnection : public std::enable_shared_from_this<TcpConnection>
 {

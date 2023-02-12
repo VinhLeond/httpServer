@@ -10,5 +10,6 @@ install(TARGETS client)
 
 add_subdirectory(HttpServer)
 add_subdirectory(TcpConnection)
+add_subdirectory(RobotModifier)
 add_subdirectory(Client)
 add_subdirectory(sys)

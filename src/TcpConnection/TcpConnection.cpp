@@ -33,7 +33,8 @@ void TcpConnection::receiveHandler(const boost::system::error_code& err, size_t 
         std::cout<<"Received_Data: "<<m_inBuff<<std::endl;
         // Process package
         clearInBuff();
-        doWrite("Acknowledge\n");
+        std::string ackMsg = "Server_Receive_data.\n";
+        doWrite(std::move(ackMsg));
     }
     else{
         std::cout<<"Failed_to_receive_message: "<<err.message()<<std::endl;
@@ -70,7 +71,7 @@ void TcpConnection::writeHandler(const boost::system::error_code& err, size_t wr
 }
 
 bool TcpConnection::prepOutMsg(std::string&& msg){
-    memset(m_inBuff, 0, sizeof(m_inBuff));
+    m_outBuff[0]= '\0';
     try
     {
         strcpy(m_outBuff, msg.c_str());
@@ -86,7 +87,7 @@ bool TcpConnection::prepOutMsg(std::string&& msg){
 bool TcpConnection::clearOutBuff(){
     try
     {
-        memset(m_outBuff, 0, sizeof(m_outBuff));
+        m_outBuff[0]= '\0';
     }
     catch(const std::exception& e)
     {
@@ -99,7 +100,7 @@ bool TcpConnection::clearOutBuff(){
 bool TcpConnection::clearInBuff(){
     try
     {
-        memset(m_inBuff, 0, sizeof(m_inBuff));
+        m_inBuff[0]= '\0';
     }
     catch(const std::exception& e)
     {

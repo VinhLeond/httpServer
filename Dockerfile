@@ -59,7 +59,6 @@ RUN \
   curl https://bootstrap.pypa.io/pip/2.7/get-pip.py --output get-pip.py;\
   python2 get-pip.py;\
   pip install ipython h5py numpy scipy wheel pyopengl;
-  # pip install minizip, qt5-default
 
 RUN \
 # RapidJSON

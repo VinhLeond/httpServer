@@ -5,8 +5,7 @@ int main(int argc, char const *argv[])
 {
     boost::asio::io_context ioContext;
     TcpClient client(ioContext);
-    client.connect("localhost", "80");
-    // client.sendMsg("HELL_WORLD");
+    client.connect("localhost", argv[1]);
     boost::thread clientThread([&ioContext](){ ioContext.run(); });
 
     clientThread.join();

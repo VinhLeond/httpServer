@@ -4,7 +4,8 @@
 #include <boost/asio.hpp>
 
 namespace asio = boost::asio;
-
+constexpr size_t CLIENT_RECV_BUFF_LEN = 8192;
+constexpr size_t CLIENT_WRITE_BUFF_LEN = 8192;
 class TcpClient
 {
     public:
@@ -15,8 +16,8 @@ class TcpClient
     private:
     asio::io_context& m_ioContext;
     std::shared_ptr<asio::ip::tcp::socket> m_socketPtr;
-    asio::streambuf m_inputBuff;
-    std::string m_outMsg;
+    char m_inputBuff[CLIENT_RECV_BUFF_LEN];
+    char m_outBuff[CLIENT_WRITE_BUFF_LEN];
     bool m_isStop = false;
     bool startRead();
     void readHandler(const boost::system::error_code& err, size_t byteLen);

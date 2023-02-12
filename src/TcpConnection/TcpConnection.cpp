@@ -2,14 +2,12 @@
 #include "sys/sys.hpp"
 
 TcpConnection::TcpConnectionPtr TcpConnection::create(asio::io_context& ioContext){
-        // return std::make_shared<TcpConnection>(ioContext);
         return TcpConnectionPtr( new TcpConnection(ioContext));
 }
 
 bool TcpConnection::start(){
     doWrite("Connected\n");
     doRead();
-    // Send Response
     return true;
 }
 
@@ -85,27 +83,11 @@ bool TcpConnection::prepOutMsg(std::string&& msg){
 }
 
 bool TcpConnection::clearOutBuff(){
-    try
-    {
-        m_outBuff[0]= '\0';
-    }
-    catch(const std::exception& e)
-    {
-        std::cerr << e.what() << '\n';
-        return false;
-    }
+    m_outBuff[0]= '\0';
     return true;
 }
 
 bool TcpConnection::clearInBuff(){
-    try
-    {
-        m_inBuff[0]= '\0';
-    }
-    catch(const std::exception& e)
-    {
-        std::cerr << e.what() << '\n';
-        return false;
-    }
+    m_inBuff[0]= '\0';
     return true;
 }

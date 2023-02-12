@@ -11,7 +11,7 @@ bool TcpClient::startRead(){
         return true;
 
     // Start an asynchronous operation to read a newline-delimited message.
-    asio::async_read_until(*m_socketPtr, m_inputBuff, '\n',
+    m_socketPtr->async_receive(asio::buffer(m_inputBuff, sizeof(m_inputBuff)),
     [this](const boost::system::error_code& err, size_t byteLen)
     {
         this->readHandler(err, byteLen);
@@ -22,17 +22,11 @@ bool TcpClient::startRead(){
 void TcpClient::readHandler(const boost::system::error_code& err, size_t byteLen){
     if(!err)
     {
-        // Extract the newline-delimited message from the buffer.
-        std::string line;
-        std::istream is(&m_inputBuff);
-        std::getline(is, line);
-
-        // Empty messages are heartbeats and so ignored.
-        if (!line.empty())
-        {
-        std::cout << "Received:_" << line << "\n";
-        }
-        startRead();
+        std::cout << "Received:_" << m_inputBuff << "\n";
+        m_inputBuff[0]='\0';
+        std::cin >> m_outBuff;
+        std::cout << "Entered: " << m_outBuff << std::endl;
+        startWrite();
     }
     else
     {
@@ -40,17 +34,11 @@ void TcpClient::readHandler(const boost::system::error_code& err, size_t byteLen
     }
 }
 
-void TcpClient::sendMsg(std::string msg)
-{
-    m_outMsg = std::move(msg);
-    startWrite();
-}
-
 bool TcpClient::startWrite(){
     if(m_isStop)
         return true;
     
-    asio::async_write(*m_socketPtr, asio::buffer(m_outMsg),
+    asio::async_write(*m_socketPtr, asio::buffer(m_outBuff, sizeof(m_outBuff)),
     [this](const boost::system::error_code& err, size_t byteLen)
     {
         this->writeHandler(err, byteLen);
@@ -59,8 +47,12 @@ bool TcpClient::startWrite(){
 }
 
 void TcpClient::writeHandler(const boost::system::error_code& err, size_t byteLen){
-	if( !err ) 
+	if( !err )
+    {
+        m_outBuff[0] = '\0';
 		std::cout << "Client_finished_sending_message\n"<<std::endl;
+        startRead();
+    }
     else 
 		std::cerr << "Client_failed_to_send_message:_"<<err.message( )<<std::endl;
     return;
@@ -70,11 +62,10 @@ void TcpClient::connectHandler(const boost::system::error_code& err, asio::ip::t
 {
     if (!err)
     {
-        std::cin >> m_outMsg;
-        std::cout << "Entered: " << m_outMsg << std::endl;
-        m_outMsg += "\0";
-
+        std::cin >> m_outBuff;
+        std::cout << "Entered: " << m_outBuff << std::endl;
         startWrite();
+        startRead();
     } 
     else if (endPoitItr != asio::ip::tcp::resolver::iterator())
     {

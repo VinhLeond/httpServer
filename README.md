@@ -3,14 +3,15 @@
 ## Feature
 ### TCP Server
 * Asynchronous 
-* Multithread
-
+* Multithread with thread pool
 ### RobotModifier
 * Barebone openRAVE plugin
+### TCP CLient
+* Used to test with server
 ## Build
 Run build srcript by using following command
 ```
-./build.sh {cleanbuildArgument} // Using 1 to make clean build. 0 is otherwise
+sudo ./build.sh {cleanbuildArgument} // Using 1 to make clean build. 0 is otherwise
 ```
 The build scrip include
 * Building binary file

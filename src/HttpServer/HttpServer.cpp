@@ -9,7 +9,12 @@ HttpServer::HttpServer(boost::asio::io_context& ioContext, int portNum)
 }
 
 HttpServer::~HttpServer(){
-    
+    stop();
+}
+
+bool HttpServer::stop(){
+    m_acceptor.close();
+    return true;
 }
 
 bool HttpServer::start(){

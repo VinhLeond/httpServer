@@ -2,6 +2,7 @@
 #include <thread>
 #include <boost/asio.hpp>
 #include <memory>
+#include <iostream>
 
 namespace asio = boost::asio;
 namespace sys

@@ -5,10 +5,12 @@ namespace sys{
     namespace detail{
         std::unique_ptr<asio::thread_pool> poolPtr;
         std::unique_ptr<asio::io_context> ioPtr;
-    }
+    } //namespace sys::detail
 
     void setup(){
-        detail::poolPtr = std::make_unique<asio::thread_pool>(std::thread::hardware_concurrency());
+        auto numbOfThread =  std::thread::hardware_concurrency();
+        std::cout<<"Creating_thread_pool_with:_"<<numbOfThread<<"_threads"<<std::endl;
+        detail::poolPtr = std::make_unique<asio::thread_pool>(numbOfThread);
         detail::ioPtr = std::make_unique<asio::io_context>();
     }
 
@@ -37,4 +39,4 @@ namespace sys{
         detail::ioPtr.release();
         detail::poolPtr.release();
     }
-}
+} // namespace sys

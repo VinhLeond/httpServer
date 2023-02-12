@@ -20,5 +20,4 @@ class HttpServer
     asio::ip::tcp::acceptor m_acceptor;
     bool listen();
     void acceptHandler(const boost::system::error_code& err, TcpConnection::TcpConnectionPtr connectionPtr);
-    void writeHandler(const boost::system::error_code& err, TcpConnection::TcpConnectionPtr connectionPtr);
 };

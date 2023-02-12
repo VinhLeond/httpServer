@@ -22,13 +22,6 @@ bool HttpServer::start(){
     return true;
 }
 
-void HttpServer::writeHandler(const boost::system::error_code& err, TcpConnection::TcpConnectionPtr connectionPtr){
-	if( !err ) 
-		std::cout << "Server_finished_sending_message\n"<<std::endl;
-    else 
-		std::cout << "Server_failed_to_send_message:_"<<err.message( )<<std::endl;
-}
-
 void HttpServer::acceptHandler(const boost::system::error_code& err, TcpConnection::TcpConnectionPtr connectionPtr){
     if(!err){
         std::cout<<"Successfully receive connection"<<std::endl;

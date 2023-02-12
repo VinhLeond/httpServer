@@ -59,6 +59,7 @@ RUN \
   curl https://bootstrap.pypa.io/pip/2.7/get-pip.py --output get-pip.py;\
   python2 get-pip.py;\
   pip install ipython h5py numpy scipy wheel pyopengl;
+  # pip install minizip, qt5-default
 
 RUN \
 # RapidJSON
@@ -81,7 +82,8 @@ cd /home && rm -rf openrave;
 
 RUN \
 cd /home/ && git clone https://github.com/VinhLeond/httpServer.git;\
-cd httpServer && ./build.sh 1;
+cd httpServer && git pull;\
+./build.sh 1;
 
 CMD "./home/httpServer/build/src/main"
 EXPOSE 9000
